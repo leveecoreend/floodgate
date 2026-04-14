@@ -80,3 +80,17 @@ func (b *Backend) Allow(key string) (bool, error) {
 	bkt.tokens--
 	return true, nil
 }
+
+// Reset removes the bucket associated with the given key, effectively resetting
+// its token count to full capacity on the next Allow call. This can be useful
+// for clearing rate-limit state after a client has been unblocked or for testing.
+func (b *Backend) Reset(key string) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	if key == "" {
+		return errors.New("tokenbucket: key must not be empty")
+	}
+	delete(b.buckets, key)
+	return nil
+}
