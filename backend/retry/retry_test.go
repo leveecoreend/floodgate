@@ -96,3 +96,19 @@ func TestRetry_RespectsContextCancellation(t *testing.T) {
 		t.Fatal("expected context error, got nil")
 	}
 }
+
+func TestRetry_MaxAttemptsOne_NoRetry(t *testing.T) {
+	sentinel := errors.New("immediate failure")
+	stub := &stubBackend{results: []error{sentinel}}
+	b, err := retry.New(retry.Options{Inner: stub, MaxAttempts: 1, Delay: time.Millisecond})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	_, gotErr := b.Allow(context.Background(), "key")
+	if !errors.Is(gotErr, sentinel) {
+		t.Fatalf("expected sentinel error, got %v", gotErr)
+	}
+	if stub.calls != 1 {
+		t.Fatalf("expected exactly 1 call with MaxAttempts=1, got %d", stub.calls)
+	}
+}
