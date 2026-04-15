@@ -10,6 +10,13 @@
 // enforcing a steady output rate, making it well-suited for scenarios where
 // a consistent downstream throughput is required.
 //
+// # Configuration
+//
+// Capacity controls the maximum number of requests that can be queued at once.
+// LeakRate controls how many requests per second drain from the bucket.
+// A higher LeakRate allows more throughput; a lower LeakRate enforces stricter
+// throttling. Setting Capacity to 1 effectively allows no bursting at all.
+//
 // # Usage
 //
 //	b, err := leakybucket.New(leakybucket.Options{
