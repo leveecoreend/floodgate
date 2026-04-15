@@ -89,3 +89,17 @@ func TestLeakyBucket_IndependentKeys(t *testing.T) {
 		t.Error("key 'b' should be independent from key 'a'")
 	}
 }
+
+func TestLeakyBucket_NegativeCapacity(t *testing.T) {
+	_, err := leakybucket.New(leakybucket.Options{Capacity: -1, LeakRate: 1})
+	if err == nil {
+		t.Error("expected error for negative Capacity")
+	}
+}
+
+func TestLeakyBucket_NegativeLeakRate(t *testing.T) {
+	_, err := leakybucket.New(leakybucket.Options{Capacity: 5, LeakRate: -1})
+	if err == nil {
+		t.Error("expected error for negative LeakRate")
+	}
+}
