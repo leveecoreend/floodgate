@@ -73,3 +73,28 @@ func TestAllow_IndependentKeys(t *testing.T) {
 		t.Fatal("keyB should be independent from keyA")
 	}
 }
+
+func TestAllow_ExactLimit(t *testing.T) {
+	// Verify that the request exactly at the limit (the max-th request) is allowed,
+	// but the very next one is denied.
+	b := memory.New()
+	const max = 5
+
+	for i := 0; i < max; i++ {
+		allowed, err := b.Allow("userExact", max, time.Minute)
+		if err != nil {
+			t.Fatalf("unexpected error on request %d: %v", i+1, err)
+		}
+		if !allowed {
+			t.Fatalf("request %d should be allowed (at or under limit)", i+1)
+		}
+	}
+
+	allowed, err := b.Allow("userExact", max, time.Minute)
+	if err != nil {
+		t.Fatalf("unexpected error on request beyond limit: %v", err)
+	}
+	if allowed {
+		t.Fatal("request beyond exact limit should be denied")
+	}
+}
