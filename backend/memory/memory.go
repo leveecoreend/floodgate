@@ -46,6 +46,25 @@ func (b *Backend) Allow(key string, maxRequests int, window time.Duration) (bool
 	return true, nil
 }
 
+// Remaining returns the number of requests still allowed for key within the
+// current window, along with the time at which the window resets. If no window
+// exists for the key, maxRequests and a zero Time are returned.
+func (b *Backend) Remaining(key string, maxRequests int) (int, time.Time) {
+	now := time.Now()
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	e, ok := b.entries[key]
+	if !ok || now.After(e.windowEnd) {
+		return maxRequests, time.Time{}
+	}
+	remaining := maxRequests - e.count
+	if remaining < 0 {
+		remaining = 0
+	}
+	return remaining, e.windowEnd
+}
+
 // evict removes expired entries every 30 seconds.
 func (b *Backend) evict() {
 	ticker := time.NewTicker(30 * time.Second)
