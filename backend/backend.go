@@ -1,14 +1,16 @@
-// Package backend defines the interface that all rate-limiting backends must implement.
+// Package backend defines the core Backend interface used by all floodgate backends.
 package backend
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
-// ErrInvalidOptions is returned when a backend is constructed with invalid configuration.
-var ErrInvalidOptions = errors.New("floodgate: invalid backend options")
+// ErrNilInner is returned when a decorator backend is constructed without an inner backend.
+var ErrNilInner = errors.New("floodgate: inner backend must not be nil")
 
-// Backend is the interface implemented by all rate-limiting storage backends.
-// Allow reports whether the request identified by key should be permitted.
-// Implementations must be safe for concurrent use.
+// Backend is the interface implemented by all rate-limiting backends.
 type Backend interface {
-	Allow(key string) (bool, error)
+	// Allow reports whether the request identified by key should be allowed.
+	Allow(ctx context.Context, key string) (bool, error)
 }
