@@ -16,6 +16,19 @@
 //		LogAllowed: false,
 //	})
 //
-// Rejections are logged at WARN level, errors at ERROR level, and
-// (when LogAllowed is true) allowed requests at INFO level.
+// # Log Levels
+//
+// The following log levels are used depending on the outcome of each request:
+//
+//   - [log/slog.LevelWarn]: request was rejected (rate limit exceeded)
+//   - [log/slog.LevelError]: an error occurred while consulting the inner backend
+//   - [log/slog.LevelInfo]: request was allowed (only when LogAllowed is true)
+//
+// # Structured Fields
+//
+// Each log record includes structured attributes to aid filtering and
+// aggregation in log management systems:
+//
+//   - "key": the rate-limit key for the request (e.g. IP address or user ID)
+//   - "backend": the name of the inner backend implementation
 package logger
