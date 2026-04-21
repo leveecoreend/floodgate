@@ -14,14 +14,22 @@ type cleaner interface {
 	StartCleanup(context.Context, time.Duration)
 }
 
+// newTestBucket creates a leaky bucket with the given options and fails the
+// test immediately if construction returns an error.
+func newTestBucket(t *testing.T, opts leakybucket.Options) *leakybucket.LeakyBucket {
+	t.Helper()
+	b, err := leakybucket.New(opts)
+	if err != nil {
+		t.Fatalf("leakybucket.New: unexpected error: %v", err)
+	}
+	return b
+}
+
 func TestLeakyBucket_CleanupRemovesIdleEntries(t *testing.T) {
-	b, err := leakybucket.New(leakybucket.Options{
+	b := newTestBucket(t, leakybucket.Options{
 		Capacity: 5,
 		LeakRate: 20.0, // drains fast
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
 
 	// Fill a bucket entry.
 	b.Allow("idle-key") //nolint:errcheck
@@ -39,7 +47,7 @@ func TestLeakyBucket_CleanupRemovesIdleEntries(t *testing.T) {
 	time.Sleep(300 * time.Millisecond)
 
 	// After cleanup the key should be gone; a fresh Allow must succeed.
-	ok, err = b.Allow("idle-key")
+	ok, err := b.Allow("idle-key")
 	if err != nil {
 		t.Fatalf("Allow error: %v", err)
 	}
@@ -49,13 +57,10 @@ func TestLeakyBucket_CleanupRemovesIdleEntries(t *testing.T) {
 }
 
 func TestLeakyBucket_CleanupStopsOnContextCancel(t *testing.T) {
-	b, err := leakybucket.New(leakybucket.Options{
+	b := newTestBucket(t, leakybucket.Options{
 		Capacity: 5,
 		LeakRate: 1.0,
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
 
 	c, ok := b.(cleaner)
 	if !ok {
@@ -69,7 +74,7 @@ func TestLeakyBucket_CleanupStopsOnContextCancel(t *testing.T) {
 	// Allow a moment for the goroutine to exit, then confirm the backend
 	// still operates correctly.
 	time.Sleep(30 * time.Millisecond)
-	ok, err = b.Allow("k")
+	ok, err := b.Allow("k")
 	if err != nil {
 		t.Fatalf("Allow error: %v", err)
 	}
