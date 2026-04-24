@@ -57,10 +57,17 @@ func New(opts Options) (backend.Backend, error) {
 	return &geofence{opts: opts}, nil
 }
 
+// Allow checks whether the request identified by key is permitted. It resolves
+// the key to a region via the configured LookupFunc and delegates to the
+// region-specific backend when one exists, otherwise the Default backend is
+// used. An empty region string (unknown location) always falls through to the
+// Default backend.
 func (g *geofence) Allow(ctx context.Context, key string) (bool, error) {
 	region := g.opts.Lookup(key)
-	if b, ok := g.opts.Regions[region]; ok {
-		return b.Allow(ctx, key)
+	if region != "" {
+		if b, ok := g.opts.Regions[region]; ok {
+			return b.Allow(ctx, key)
+		}
 	}
 	return g.opts.Default.Allow(ctx, key)
 }
