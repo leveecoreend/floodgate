@@ -1,5 +1,5 @@
 // Package ratelimit provides shared option types and validation helpers
-// used across floodgate backend implementations.
+// used across floodgate backends.
 package ratelimit
 
 import (
@@ -7,53 +7,40 @@ import (
 	"time"
 )
 
-// ErrInvalidLimit is returned when a rate limit value is zero or negative.
-var ErrInvalidLimit = errors.New("ratelimit: limit must be greater than zero")
-
-// ErrInvalidWindow is returned when a time window is zero or negative.
-var ErrInvalidWindow = errors.New("ratelimit: window must be greater than zero")
-
-// ErrInvalidCapacity is returned when a bucket capacity is zero or negative.
-var ErrInvalidCapacity = errors.New("ratelimit: capacity must be greater than zero")
-
-// ErrInvalidRate is returned when a refill/leak rate is zero or negative.
-var ErrInvalidRate = errors.New("ratelimit: rate must be greater than zero")
-
-// Options holds common configuration shared by most backends.
+// Options holds the common rate-limiting parameters shared by window-based backends.
 type Options struct {
-	// Limit is the maximum number of requests allowed in the window.
+	// Limit is the maximum number of requests allowed within Window.
 	Limit int
-	// Window is the duration of the rate-limit window.
+	// Window is the duration of the rate-limiting window.
 	Window time.Duration
 }
 
-// Validate checks that the Options fields are valid.
+// Validate returns an error if the Options are invalid.
 func (o Options) Validate() error {
 	if o.Limit <= 0 {
-		return ErrInvalidLimit
+		return errors.New("floodgate: limit must be greater than zero")
 	}
 	if o.Window <= 0 {
-		return ErrInvalidWindow
+		return errors.New("floodgate: window must be greater than zero")
 	}
 	return nil
 }
 
-// BucketOptions holds configuration for bucket-based backends (token/leaky).
+// BucketOptions holds parameters for bucket-based backends (token bucket, leaky bucket).
 type BucketOptions struct {
 	// Capacity is the maximum number of tokens/requests the bucket can hold.
 	Capacity int
-	// Rate is the number of tokens added (token bucket) or drained (leaky bucket)
-	// per second.
-	Rate float64
+	// Rate is how often the bucket is refilled or drained by one unit.
+	Rate time.Duration
 }
 
-// Validate checks that the BucketOptions fields are valid.
+// Validate returns an error if the BucketOptions are invalid.
 func (o BucketOptions) Validate() error {
 	if o.Capacity <= 0 {
-		return ErrInvalidCapacity
+		return errors.New("floodgate: capacity must be greater than zero")
 	}
 	if o.Rate <= 0 {
-		return ErrInvalidRate
+		return errors.New("floodgate: rate must be greater than zero")
 	}
 	return nil
 }
