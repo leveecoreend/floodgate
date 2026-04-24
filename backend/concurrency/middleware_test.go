@@ -69,6 +69,9 @@ func TestMiddleware_CustomOnLimit(t *testing.T) {
 	if !customCalled {
 		t.Fatal("expected custom onLimit handler to be called")
 	}
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d", rec.Code)
+	}
 }
 
 func TestMiddleware_ReleasesSlotAfterRequest(t *testing.T) {
