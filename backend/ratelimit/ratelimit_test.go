@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/example/floodgate/backend/ratelimit"
+	"github.com/your-org/floodgate/backend/ratelimit"
 )
 
 func TestOptions_Validate_Valid(t *testing.T) {

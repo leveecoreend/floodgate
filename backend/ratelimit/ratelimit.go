@@ -1,5 +1,5 @@
 // Package ratelimit provides shared option types and validation helpers
-// used across floodgate backends.
+// used across floodgate backend implementations.
 package ratelimit
 
 import (
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Options holds the common rate-limiting parameters shared by window-based backends.
+// Options holds common rate-limiting parameters shared by window-based backends.
 type Options struct {
 	// Limit is the maximum number of requests allowed within Window.
 	Limit int
@@ -15,7 +15,7 @@ type Options struct {
 	Window time.Duration
 }
 
-// Validate returns an error if the Options are invalid.
+// Validate returns an error if any option value is invalid.
 func (o Options) Validate() error {
 	if o.Limit <= 0 {
 		return errors.New("floodgate: limit must be greater than zero")
@@ -30,11 +30,11 @@ func (o Options) Validate() error {
 type BucketOptions struct {
 	// Capacity is the maximum number of tokens/requests the bucket can hold.
 	Capacity int
-	// Rate is how often the bucket is refilled or drained by one unit.
+	// Rate is the duration between each token refill or leak tick.
 	Rate time.Duration
 }
 
-// Validate returns an error if the BucketOptions are invalid.
+// Validate returns an error if any bucket option value is invalid.
 func (o BucketOptions) Validate() error {
 	if o.Capacity <= 0 {
 		return errors.New("floodgate: capacity must be greater than zero")
